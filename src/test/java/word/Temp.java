@@ -29,7 +29,7 @@ public class Temp {
     public List<Table> tableListNew() {
         List<Table> list = new LinkedList();
         //1、将 Swagger json文档反序列化成Swagger对象
-        Swagger swagger = restTemplate.getForObject("http://192.168.1.199:8680/v2/api-docs", Swagger.class);
+        Swagger swagger = restTemplate.getForObject("http://localhost:10316/v2/api-docs", Swagger.class);
         //2、解析数据
         String host = swagger.getHost();
         Map<String, Path> paths = swagger.getPaths();

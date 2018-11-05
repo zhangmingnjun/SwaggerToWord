@@ -18,9 +18,21 @@ public class Response {
      * 说明
      */
     private String remark;
+    
+    /**
+     * 默认值
+     */
+    private String defaultValue;
 
+    public String getDefaultValue() {
+		return defaultValue;
+	}
 
-    public  Response(){
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
+
+	public  Response(){
 
     }
 

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-import java.util.List;
 
 /**
  * Created by XiuYin.Cui on 2018/1/12.
@@ -34,6 +33,8 @@ public class WordServiceImpl implements WordService {
         String host = StringUtils.substringBefore(swaggerUrl, ":") + String.valueOf(map.get("host"));
         //解析paths
         LinkedHashMap<String, LinkedHashMap> paths = (LinkedHashMap) map.get("paths");
+        LinkedHashMap<String, LinkedHashMap> definitions = (LinkedHashMap) map.get("definitions");
+        
         if (paths != null) {
             Iterator<Map.Entry<String, LinkedHashMap>> it = paths.entrySet().iterator();
             while (it.hasNext()) {
@@ -86,11 +87,54 @@ public class WordServiceImpl implements WordService {
                     for (int i = 0; i < parameters.size(); i++) {
                         Request request = new Request();
                         LinkedHashMap<String, Object> param = (LinkedHashMap) parameters.get(i);
+                        
+                        if(param.get("type") == null && param.get("schema") != null ){
+                        	LinkedHashMap<String, String> refMap = (LinkedHashMap) param.get("schema");
+                        	int index = refMap.get("$ref").lastIndexOf("/");
+                        	String ref = "";
+                        	if(index != -1){
+                        		ref = refMap.get("$ref").substring(index+1);
+                        	}
+                        	LinkedHashMap<String, LinkedHashMap> definitionsMap = (LinkedHashMap) definitions.get(ref);
+                        	LinkedHashMap<String, LinkedHashMap> propertiesMap = (LinkedHashMap) definitionsMap.get("properties");
+                        	List<String> requiredList = (List<String>) definitionsMap.get("required");
+                        	Iterator<Map.Entry<String, LinkedHashMap>> it3 = propertiesMap.entrySet().iterator();
+                        	while(it3.hasNext()){
+                        		Map.Entry<String, LinkedHashMap> entry = it3.next();
+                        		String key = entry.getKey();
+                        		LinkedHashMap<String,Object> valueMap = entry.getValue(); 
+                        		request = new Request();
+                        		request.setName(String.valueOf(key));
+                        		
+                        		if("array".equals(valueMap.get("type"))){
+                        			LinkedHashMap<String,Object> itemMap = (LinkedHashMap<String, Object>) valueMap.get("items");
+                        			if("integer".equals(itemMap.get("type"))){
+                        				request.setType("List<integer>");
+                        			}else {
+                        				request.setType("List<String>");
+									}
+                        		}else {
+                        			request.setType(String.valueOf(valueMap.get("type")));
+								}
+                        		
+                        		request.setParamType("body");
+                        		if(requiredList !=null){
+                        			request.setRequire(requiredList.contains(key));
+                        		}else {
+                        			request.setRequire(false);
+								}
+                        		request.setRemark( String.valueOf(valueMap.get("description")));
+                        		request.setDefaultValue(String.valueOf(valueMap.get("example")));
+                        		requestList.add(request);
+                        	}
+                            continue;
+                        }
                         request.setName(String.valueOf(param.get("name")));
-                        request.setType(param.get("type") == null ? "Object" : param.get("type").toString());
+                    	request.setType(param.get("type").toString());
                         request.setParamType(String.valueOf(param.get("in")));
                         request.setRequire((Boolean) param.get("required"));
                         request.setRemark(String.valueOf(param.get("description")));
+                        request.setDefaultValue(String.valueOf(param.get("default")));
                         requestList.add(request);
                     }
                 }
@@ -104,6 +148,12 @@ public class WordServiceImpl implements WordService {
                     String statusCode = entry.getKey();
                     LinkedHashMap<String, Object> statusCodeInfo = (LinkedHashMap) entry.getValue();
                     String statusDescription = (String) statusCodeInfo.get("description");
+                    if("200".equals(statusCode)){
+                    	//TODO:
+                    	
+                    }else {
+						
+					}
                     response.setName(statusCode);
                     response.setDescription(statusDescription);
                     response.setRemark(null);

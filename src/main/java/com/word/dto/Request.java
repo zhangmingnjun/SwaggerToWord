@@ -19,6 +19,11 @@ public class Request {
      * 参数类型
      */
     private String paramType;
+    
+    /**
+     * 默认值
+     */
+    private String defaultValue;
 
     /**
      * 是否必填
@@ -30,7 +35,15 @@ public class Request {
      */
     private String remark;
 
-    public String getName() {
+    public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
+
+	public String getName() {
         return name;
     }
 
